@@ -12,40 +12,59 @@
 import os
 
 from issp import Actor, Channel, Message, log
+from issp import aes256_encrypt_block, aes256_decrypt_block
 
 BLOCK_SIZE = 16  # AES256 block size in bytes
 
 
 def zero_pad(data: bytes, block_size: int) -> bytes:
     # TO-DO: Implement zero padding.
+    if len(data) % block_size :
+        padding_length = block_size - (len(data) % block_size)
+        data += b'\x00' * padding_length     
     return data
 
 
 def zero_unpad(data: bytes) -> bytes:
     # TO-DO: Implement zero unpadding.
+    data = data.rstrip(b'\x00')
     return data
 
 
 def encrypt(data: bytes, key: bytes) -> bytes:
     # TO-DO: Implement AES256 ECB encryption.
-    return data
+    e_data = bytes()
+    while len(data):
+        b_data = data[:BLOCK_SIZE]
+        data = data[BLOCK_SIZE:]
+        e_data += aes256_encrypt_block(b_data, key)
+    return e_data
 
 
 def decrypt(data: bytes, key: bytes) -> bytes:
     # TO-DO: Implement AES256 ECB decryption.
-    return data
+    d_data = bytes()
+    while len(data):
+        b_data = data[:BLOCK_SIZE]
+        data = data[BLOCK_SIZE:]
+        d_data += aes256_decrypt_block(b_data, key)
+    return d_data
 
 
 def alice(channel: Channel, key: bytes) -> None:
     msg = Message("Alice", "Bob", "Here is the top-secret PIN, keep it safe: 42")
     log.info("[Alice] Encrypted: %s", msg)
     # TO-DO: Encrypt the message body.
+    msg.body = zero_pad(msg.body, BLOCK_SIZE)
+    msg.body = encrypt(msg.body, key)
     channel.send(msg)
 
 
 def bob(channel: Channel, key: bytes) -> None:
     msg = channel.receive("Bob")
     # TO-DO: Decrypt the message body.
+    msg.body = decrypt(msg.body, key)
+    msg.body = zero_unpad(msg.body)
     log.info("[Bob] Decrypted: %s", msg)
 
 

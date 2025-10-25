@@ -23,7 +23,10 @@ def bob(channel: Channel) -> None:
 
 
 def mallory(channel: Channel) -> None:
-    # TO-DO: Implement eavesdropping and tampering.
+    msg = channel.receive("Bob")
+    if msg:
+        tampered_msg = Message(msg.sender, msg.recipient, b"Hello, Bob! This message has been tampered with by Mallory.")
+        channel.send(tampered_msg)
     pass
 
 

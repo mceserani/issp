@@ -7,18 +7,30 @@
 import os
 
 from issp import Actor, Channel, Message, log
+from issp._util import xor
+
+
+def encrypt(data: bytes, key: bytes) -> bytes:
+    # TO-DO: Implement the OTP encryption.
+    return xor(data,key)
+
+def decrypt(data: bytes, key: bytes) -> bytes:
+    # TO-DO: Implement the OTP decryption.
+    return xor(data,key)
 
 
 def alice(channel: Channel, key: bytes) -> None:
     msg = Message("Alice", "Bob", "Hello, Bob!")
     log.info("[Alice] Encrypted: %s", msg)
     # TO-DO: Encrypt the message body.
+    msg.body = encrypt(msg.body,key)
     channel.send(msg)
 
 
 def bob(channel: Channel, key: bytes) -> None:
     msg = channel.receive("Bob")
     # TO-DO: Decrypt the message body.
+    msg.body = decrypt(msg.body,key)
     log.info("[Bob] Decrypted: %s", msg)
 
 
